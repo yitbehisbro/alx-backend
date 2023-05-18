@@ -37,7 +37,7 @@ class Server:
     def get_hyper(self, page: int, page_size: int) -> dict:
         """
         Takes the same arguments (and defaults) as get_page
-        and returns a dictionary 
+        and returns a dictionary
         """
         dataset_records = self.get_page(page, page_size)
 
