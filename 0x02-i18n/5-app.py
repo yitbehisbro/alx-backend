@@ -1,8 +1,20 @@
 #!/usr/bin/env python3
-""" Route module for the API """
-from flask import Flask, render_template, request, g
+'''Flask app'''
+from flask import Flask, render_template, request
 from flask_babel import Babel
 
+app = Flask(__name__)
+babel = Babel(app)
+
+
+class Config():
+    '''Babel config'''
+    LANGUAGES = ['en', 'fr']
+
+
+app.config.from_object(Config)
+Babel.default_locale = 'en'
+Babel.default_timezone = 'UTC'
 
 users = {
     1: {"name": "Balou", "locale": "fr", "timezone": "Europe/Paris"},
@@ -11,42 +23,18 @@ users = {
     4: {"name": "Teletubby", "locale": None, "timezone": "Europe/London"},
 }
 
-app = Flask(__name__)
-babel = Babel(app)
-
-
-class Config(object):
-    """ Available languages class """
-    LANGUAGES = ['en', 'fr']
-    # these are the inherent defaults just btw
-    BABEL_DEFAULT_LOCALE = 'en'
-    BABEL_DEFAULT_TIMEZONE = 'UTC'
-
-
-# set the above class object as the configuration for the app
-app.config.from_object(Config)
-
-
-@app.route('/', methods=['GET'], strict_slashes=False)
-def index() -> str:
-    """ GET /
-    Return:
-      - 5-index.html
-    """
-    return render_template('5-index.html')
-
 
 @babel.localeselector
 def get_locale():
-    ''' get locale from request '''
+    '''Get locale from request'''
     locale = request.args.get("locale")
     if locale:
         return locale
     return request.accept_languages.best_match(Config.LANGUAGES)
 
 
-def get_user() -> Union[dict, None]:
-    """ Returns user dict if ID can be found """
+def get_user():
+    '''Return user from db'''
     login_as = request.args.get("login_as", False)
     if login_as:
         user = users.get(int(login_as), False)
@@ -57,9 +45,16 @@ def get_user() -> Union[dict, None]:
 
 @app.before_request
 def before_request():
-    """ Finds user and sets as global on flask.g.user """
-    g.user = get_user()
+    '''Before request'''
+    user = get_user()
+    g.user = user
 
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port="5000")
+@app.route('/', methods=['GET'])
+def index():
+    '''Return index'''
+    return render_template('4-index.html')
+
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port='5000')
